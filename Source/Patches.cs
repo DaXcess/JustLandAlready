@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
@@ -13,13 +14,12 @@ internal static class JustLandAlreadyPatches
     /// </summary>
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.playersFiredGameOver), MethodType.Enumerator)]
     [HarmonyTranspiler]
-    [HarmonyDebug]
     private static IEnumerable<CodeInstruction> PlayersFiredGameOverPatch(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
             .MatchForward(false, [new CodeMatch(OpCodes.Stfld, Field(typeof(StartOfRound), nameof(StartOfRound.playersRevived)))])
             .Advance(5)
-            .SetOperandAndAdvance(Constructor(typeof(WaitUntilRevived)))
+            .SetOperandAndAdvance(Constructor(typeof(WaitUntilRevived), [typeof(Func<bool>)]))
             .InstructionEnumeration();
     }
 
@@ -28,13 +28,12 @@ internal static class JustLandAlreadyPatches
     /// </summary>
     [HarmonyPatch(typeof(StartOfRound), nameof(StartOfRound.EndOfGame), MethodType.Enumerator)]
     [HarmonyTranspiler]
-    [HarmonyDebug]
     private static IEnumerable<CodeInstruction> EndOfGamePatch(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
             .MatchForward(false, [new CodeMatch(OpCodes.Stfld, Field(typeof(StartOfRound), nameof(StartOfRound.playersRevived)))])
             .Advance(5)
-            .SetOperandAndAdvance(Constructor(typeof(WaitUntilRevived)))
+            .SetOperandAndAdvance(Constructor(typeof(WaitUntilRevived), [typeof(Func<bool>)]))
             .InstructionEnumeration();
     }
 
@@ -43,13 +42,12 @@ internal static class JustLandAlreadyPatches
     /// </summary>
     [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.LoadNewLevelWait), MethodType.Enumerator)]
     [HarmonyTranspiler]
-    [HarmonyDebug]
     private static IEnumerable<CodeInstruction> LoadNewLevelWaitPatch(IEnumerable<CodeInstruction> instructions)
     {
         return new CodeMatcher(instructions)
             .MatchForward(false, [new CodeMatch(OpCodes.Ldstr, "Players finished generating the new floor")])
             .Advance(-10)
-            .SetOperandAndAdvance(Constructor(typeof(WaitUntilGenerated)))
+            .SetOperandAndAdvance(Constructor(typeof(WaitUntilGenerated), [typeof(Func<bool>)]))
             .InstructionEnumeration();
     }
 }
